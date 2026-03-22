@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model WordPair {
+  id       String @id @default(uuid())
+  category String
+  wordA    String
+  wordB    String
+}
+
+model Party {
+  id                      String   @id @default(uuid())
+  code                    String   @unique
+  status                  String   @default("lobby")
+  wordA                   String   @default("")
+  wordB                   String   @default("")
+  category                String   @default("")
+  desiredInfiltratorCount Int
+  hasSpy                  Boolean  @default(true)
+  spyNotFirst             Boolean  @default(false)
+  infiltratorKnowsRole    Boolean  @default(true)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  hostPlayerId String?
+  host         Player?  @relation("PartyHost", fields: [hostPlayerId], references: [id])
+  players      Player[] @relation("PartyPlayers")
+  rounds       Round[]
+}
+
+model Player {
+  id           String   @id @default(uuid())
+  displayName  String
+  role         String?
+  isAlive      Boolean  @default(true)
+  sessionToken String   @unique
+  joinedAt     DateTime @default(now())
+
+  partyId String
+  party   Party  @relation("PartyPlayers", fields: [partyId], references: [id], onDelete: Cascade)
+
+  hostedParties     Party[]  @relation("PartyHost")
+  votesCast         Vote[]   @relation("VoterVotes")
+  votesReceived     Vote[]   @relation("TargetVotes")
+  eliminatedInRound Round[]  @relation("EliminatedPlayer")
+
+  @@unique([partyId, displayName])
+}
+
+model Round {
+  id              String    @id @default(uuid())
+  roundNumber     Int
+  status          String    @default("discussion")
+  speakingOrder   String[]
+  votingStartedAt DateTime?
+  spyGuess        String?
+  spyGuessCorrect Boolean?
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+
+  partyId String
+  party   Party  @relation(fields: [partyId], references: [id], onDelete: Cascade)
+
+  eliminatedPlayerId String?
+  eliminatedPlayer   Player? @relation("EliminatedPlayer", fields: [eliminatedPlayerId], references: [id])
+
+  votes Vote[]
+
+  @@unique([partyId, roundNumber])
+}
+
+model Vote {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  roundId String
+  round   Round  @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  voterId String
+  voter   Player @relation("VoterVotes", fields: [voterId], references: [id])
+
+  targetId String
+  target   Player @relation("TargetVotes", fields: [targetId], references: [id])
+
+  @@unique([roundId, voterId])
+}

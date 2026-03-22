@@ -1,0 +1,3 @@
+ALTER TABLE "Party" ADD COLUMN "spyNotFirst" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Party" ADD COLUMN "infiltratorKnowsRole" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "Round" ADD COLUMN "speakingOrder" TEXT[] NOT NULL DEFAULT '{}';
