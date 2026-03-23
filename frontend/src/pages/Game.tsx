@@ -55,6 +55,7 @@ export default function Game() {
   const [spyGuessInput, setSpyGuessInput] = useState("");
   const [gameOver, setGameOver] = useState<GameOverPayload | null>(null);
   const [eliminationNotice, setEliminationNotice] = useState<EliminationNotice | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -166,12 +167,51 @@ export default function Game() {
     };
     const reasonText = gameOver.reason ? WIN_REASONS[gameOver.reason] : null;
 
+    const EMOTIONAL: Record<string, Record<string, [string, string]>> = {
+      civilian: {
+        all_bad_eliminated: ["🎉", "You found them all!"],
+        civilians_outnumbered: ["😵", "The infiltrators fooled you"],
+        spy_guessed_word: ["🧠", "The spy was too clever"],
+      },
+      infiltrator: {
+        civilians_outnumbered: ["😏", "You fooled everyone"],
+        spy_guessed_word: ["🕵️", "The spy saved the mission"],
+        all_bad_eliminated: ["💀", "Your cover was blown"],
+      },
+      spy: {
+        spy_guessed_word: ["🎯", "You guessed the word — unreal"],
+        all_bad_eliminated: ["💀", "Caught before you could guess"],
+        civilians_outnumbered: ["😈", "The bad team pulled through"],
+      },
+    };
+    const roleKey = myActualRole ?? "civilian";
+    const reasonKey = gameOver.reason ?? "";
+    const [emotionalIcon, emotionalHeadline] =
+      EMOTIONAL[roleKey]?.[reasonKey] ?? (won ? ["🏆", "Victory!"] : ["💀", "Defeated"]);
+
+    async function handleCopyLink() {
+      await navigator.clipboard.writeText(window.location.origin);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    }
+    function handleShareWhatsApp() {
+      const text = `I just played Infiltrator — a multiplayer spy game! 🕵️\nPlay at: ${window.location.origin}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    }
+
     return (
       <div className="page center">
-        <div style={{ fontSize: "3.5rem", lineHeight: 1 }}>{won ? "🏆" : "💀"}</div>
-        <h2 style={{ marginBottom: 0 }}>{won ? "Victory" : "Defeat"}</h2>
+        <div style={{ fontSize: "4rem", lineHeight: 1 }}>{emotionalIcon}</div>
+        <div className="game-over-headline">{emotionalHeadline}</div>
         <span className={`game-over-result ${won ? "win" : "lose"}`}>{winnerLabel} won</span>
         {reasonText && <p style={{ color: "var(--muted)", fontSize: ".9rem", marginTop: "-.25rem" }}>{reasonText}</p>}
+
+        <div style={{ display: "flex", gap: ".6rem", width: "100%" }}>
+          <button className="btn-whatsapp" onClick={handleShareWhatsApp} style={{ flex: 1 }}>Share on WhatsApp</button>
+          <button className="btn-ghost" onClick={handleCopyLink} style={{ flex: 1 }}>
+            {linkCopied ? "Copied!" : "Copy link"}
+          </button>
+        </div>
 
         <div style={{ width: "100%", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r)", overflow: "hidden" }}>
           <table>
@@ -210,22 +250,25 @@ export default function Game() {
     const isSpy = myId === spyGuessing.spyPlayerId;
     return (
       <div className="page center">
-        <div style={{ fontSize: "3rem" }}>🕵️</div>
-        <h2>The Spy Was Caught!</h2>
+        <div style={{ fontSize: "3.5rem", lineHeight: 1 }}>🕵️</div>
+        <h2 style={{ marginBottom: 0 }}>The Spy Was Caught!</h2>
+        <p style={{ color: "var(--muted)", fontSize: ".9rem", marginTop: "-.25rem" }}>
+          But it's not over yet...
+        </p>
         <p style={{ color: "var(--muted)" }}>
-          <strong style={{ color: "var(--text)" }}>{spyGuessing.spyDisplayName}</strong> is the spy and gets one last chance to guess the civilian word.
+          <strong style={{ color: "var(--text)" }}>{spyGuessing.spyDisplayName}</strong> gets one last chance to guess the civilian word and steal the win.
         </p>
         {isSpy ? (
           <form onSubmit={handleSpyGuess} style={{ width: "100%" }}>
             <label>
               Your guess
-              <input value={spyGuessInput} onChange={(e) => setSpyGuessInput(e.target.value)} placeholder="What's the word?" required />
+              <input value={spyGuessInput} onChange={(e) => setSpyGuessInput(e.target.value)} placeholder="What's the word?" required autoFocus />
             </label>
             {error && <p className="error">{error}</p>}
-            <button type="submit" className="btn-danger">Submit Guess</button>
+            <button type="submit" className="btn-danger" style={{ width: "100%" }}>Submit Guess — Win or Lose</button>
           </form>
         ) : (
-          <p className="waiting">Waiting for spy to guess...</p>
+          <p className="waiting">Holding breath... waiting for spy to guess 😰</p>
         )}
       </div>
     );

@@ -48,16 +48,34 @@ export default function Home() {
 
   if (mode === "pick") {
     return (
-      <div className="page center">
+      <div className="page center" style={{ paddingTop: "8vh", gap: "1.75rem" }}>
         <div className="home-logo">
           <div className="home-icon">🕵️</div>
           <h1>INFILTRATOR</h1>
-          <p className="home-tagline">Find the spy before it's too late</p>
+          <p className="home-tagline">A multiplayer spy game where you might not know the word</p>
+          <p style={{ color: "var(--muted)", fontSize: ".78rem", marginTop: ".1rem", letterSpacing: ".03em" }}>
+            Play with 3–10 friends · No signup · 2 minutes to start
+          </p>
         </div>
+
+        <div className="how-it-works">
+          {([
+            ["👀", "Everyone gets a secret word"],
+            ["😈", "Infiltrators get a different word"],
+            ["🕵️", "The spy gets no word — just vibes"],
+            ["🗳️", "Discuss, then vote out the bad team"],
+          ] as [string, string][]).map(([icon, text], i) => (
+            <div key={i} className="how-step">
+              <span className="how-step-icon">{icon}</span>
+              <span className="how-step-text">{text}</span>
+            </div>
+          ))}
+        </div>
+
         <div className="home-actions">
-          <button onClick={() => setMode("create")}>Create Party</button>
-          <button className="btn-ghost" onClick={() => setMode("join")}>Join Party</button>
-          <button className="btn-ghost" onClick={() => setMode("rules")} style={{ fontSize: ".85rem", opacity: .7 }}>How to Play</button>
+          <button onClick={() => setMode("create")}>Create Room</button>
+          <button className="btn-ghost" onClick={() => setMode("join")}>Join Room</button>
+          <button className="btn-ghost" onClick={() => setMode("rules")} style={{ fontSize: ".8rem", opacity: .6 }}>Full rules</button>
         </div>
       </div>
     );
@@ -66,7 +84,7 @@ export default function Home() {
   if (mode === "create") {
     return (
       <div className="page">
-        <h2>Create Party</h2>
+        <h2>Create Room</h2>
         <form onSubmit={handleCreate}>
           <label>
             Your name

@@ -30,6 +30,7 @@ export default function Lobby() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [hostId, setHostId] = useState("");
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
   const myId = storage.getItem("playerId") ?? "";
   const token = storage.getItem("sessionToken") ?? "";
 
@@ -55,17 +56,38 @@ export default function Lobby() {
     catch (e: any) { setError(e?.error || "Failed to start"); }
   }
 
+  const gameUrl = window.location.origin;
+  const inviteMessage = `I'm starting a spy game 😈\nJoin me: ${gameUrl}\nCode: ${code}`;
+
+  async function handleCopyInvite() {
+    await navigator.clipboard.writeText(inviteMessage);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  function handleShareWhatsApp() {
+    window.open(`https://wa.me/?text=${encodeURIComponent(inviteMessage)}`, "_blank");
+  }
+
   const isHost = myId === hostId;
   const canStart = players.length >= 3;
 
   return (
     <div className="page">
-      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+      <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
         <p className="code-label">Party Code</p>
         <div className="code-badge">{code}</div>
-        <p className="waiting" style={{ marginTop: ".5rem" }}>
-          Share this code with your friends
-        </p>
+      </div>
+
+      <div className="invite-box" style={{ marginBottom: "1.75rem" }}>
+        <p className="section-label" style={{ marginBottom: ".6rem" }}>Invite friends</p>
+        <div className="invite-message">{inviteMessage}</div>
+        <div className="share-btns">
+          <button className="btn-whatsapp" onClick={handleShareWhatsApp} style={{ flex: 1 }}>WhatsApp</button>
+          <button className="btn-ghost" onClick={handleCopyInvite} style={{ flex: 1 }}>
+            {copied ? "Copied!" : "Copy invite"}
+          </button>
+        </div>
       </div>
 
       <p className="section-label">{players.length} player{players.length !== 1 ? "s" : ""} in lobby</p>
