@@ -193,6 +193,27 @@ button:disabled { background: rgba(255,255,255,.07); color: var(--muted); cursor
 .btn-whatsapp { background: linear-gradient(135deg, #128C7E, #25D366) !important; }
 .btn-whatsapp:hover { box-shadow: 0 4px 20px rgba(37,211,102,.3) !important; }
 
+/* ── Offline / play-without-server button ── */
+.btn-offline {
+  background: linear-gradient(135deg, rgba(245,158,11,.15), rgba(239,68,68,.1)) !important;
+  border: 1px solid rgba(245,158,11,.3) !important;
+  color: #fbbf24 !important;
+  box-shadow: none !important;
+}
+.btn-offline:hover { background: linear-gradient(135deg, rgba(245,158,11,.25), rgba(239,68,68,.15)) !important; transform: none !important; }
+
+/* ── Pass-the-phone counter ── */
+.pass-counter {
+  font-family: 'Cinzel', serif;
+  font-size: .85rem;
+  color: var(--muted);
+  letter-spacing: .12em;
+  padding: .2rem .85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
 /* ── Game over emotional ── */
 .game-over-headline {
   font-size: 1.6rem;

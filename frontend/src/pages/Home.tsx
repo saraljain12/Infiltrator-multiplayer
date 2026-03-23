@@ -75,6 +75,7 @@ export default function Home() {
         <div className="home-actions">
           <button onClick={() => setMode("create")}>Create Room</button>
           <button className="btn-ghost" onClick={() => setMode("join")}>Join Room</button>
+          <button className="btn-offline" onClick={() => nav("/offline")}>📱 Play Offline</button>
           <button className="btn-ghost" onClick={() => setMode("rules")} style={{ fontSize: ".8rem", opacity: .6 }}>Full rules</button>
         </div>
       </div>
