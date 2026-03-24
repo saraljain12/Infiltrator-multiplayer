@@ -50,7 +50,7 @@ export default function Home() {
     return (
       <div className="page center" style={{ paddingTop: "8vh", gap: "1.75rem" }}>
         <div className="home-logo">
-          <div className="home-icon">🕵️</div>
+          <img src="/logo.png" alt="Infiltrator logo" className="home-icon" style={{ width: "120px", height: "120px", objectFit: "contain" }} />
           <h1>INFILTRATOR</h1>
           <p className="home-tagline">A multiplayer spy game where you might not know the word</p>
           <p style={{ color: "var(--muted)", fontSize: ".78rem", marginTop: ".1rem", letterSpacing: ".03em" }}>
