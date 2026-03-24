@@ -49,14 +49,7 @@ export default function Home() {
   if (mode === "pick") {
     return (
       <div className="page center" style={{ paddingTop: "8vh", gap: "1.75rem" }}>
-        <div className="home-logo">
-          <img src="/logo.png" alt="Infiltrator logo" className="home-icon" style={{ width: "120px", height: "120px", objectFit: "contain" }} />
-          <h1>INFILTRATOR</h1>
-          <p className="home-tagline">A multiplayer spy game where you might not know the word</p>
-          <p style={{ color: "var(--muted)", fontSize: ".78rem", marginTop: ".1rem", letterSpacing: ".03em" }}>
-            Play with 3–10 friends · No signup · 2 minutes to start
-          </p>
-        </div>
+        <img src="/banner.png" alt="Infiltrator Party Game" style={{ width: "100%", maxWidth: "420px", borderRadius: "12px" }} fetchPriority="high" />
 
         <div className="how-it-works">
           {([
