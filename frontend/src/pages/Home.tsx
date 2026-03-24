@@ -49,7 +49,7 @@ export default function Home() {
   if (mode === "pick") {
     return (
       <div className="page center" style={{ paddingTop: "8vh", gap: "1.75rem" }}>
-        <img src="/banner.png" alt="Infiltrator Party Game" style={{ width: "100%", maxWidth: "420px", borderRadius: "12px" }} fetchPriority="high" />
+        <img src="/banner.png" alt="Infiltrator Party Game" style={{ width: "100%", maxWidth: "300px", borderRadius: "12px" }} fetchPriority="high" />
 
         <div className="how-it-works">
           {([
