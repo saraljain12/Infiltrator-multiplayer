@@ -137,9 +137,9 @@ export async function partyRoutes(app: FastifyInstance) {
     const speakingOrder = generateSpeakingOrder(playersWithRoles, party.spyNotFirst);
 
     const round = await prisma.$transaction(async (tx) => {
-      for (const { playerId, role } of assignments) {
-        await tx.player.update({ where: { id: playerId }, data: { role } });
-      }
+      await Promise.all(assignments.map(({ playerId, role }) =>
+        tx.player.update({ where: { id: playerId }, data: { role } })
+      ));
       await tx.party.update({ where: { id: party.id }, data: { status: "in_progress" } });
       return tx.round.create({ data: { partyId: party.id, roundNumber: 1, speakingOrder } });
     });
@@ -148,5 +148,39 @@ export async function partyRoutes(app: FastifyInstance) {
     broadcast(code, "game_started", { roundId: round.id, roundNumber: 1, alivePlayerIds, speakingOrder });
 
     return { roundId: round.id };
+  });
+
+  // Play again — reset finished party to lobby (host only)
+  app.post("/parties/:code/reset", async (req, reply) => {
+    const { code } = req.params as { code: string };
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (!token) return reply.status(401).send({ error: "Unauthorized" });
+
+    const [player, party] = await Promise.all([
+      prisma.player.findUnique({ where: { sessionToken: token } }),
+      prisma.party.findUnique({ where: { code }, include: { players: true } }),
+    ]);
+    if (!player) return reply.status(401).send({ error: "Unauthorized" });
+    if (!party) return reply.status(404).send({ error: "Party not found" });
+    if (party.hostPlayerId !== player.id) return reply.status(403).send({ error: "Only host can reset" });
+    if (party.status !== "finished") return reply.status(400).send({ error: "Game not finished" });
+
+    const pairCount = await prisma.wordPair.count();
+    const pair = await prisma.wordPair.findFirst({ skip: Math.floor(Math.random() * pairCount) });
+    if (!pair) return reply.status(500).send({ error: "No word pairs available" });
+
+    await prisma.$transaction(async (tx) => {
+      await tx.party.update({
+        where: { id: party.id },
+        data: { status: "lobby", wordA: pair.wordA, wordB: pair.wordB, category: pair.category },
+      });
+      await Promise.all(
+        party.players.map((p) => tx.player.update({ where: { id: p.id }, data: { role: null, isAlive: true } }))
+      );
+    });
+
+    broadcast(code, "party_reset", {});
+
+    return { success: true };
   });
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getMe, getParty, getCurrentRound, startVoting, submitVote, submitSpyGuess, nextRound } from "../lib/api";
+import { getMe, getParty, getCurrentRound, startVoting, submitVote, submitSpyGuess, nextRound, resetParty } from "../lib/api";
 import storage from "../lib/storage";
 import { connectWS, onEvent } from "../lib/ws";
 
@@ -113,10 +113,11 @@ export default function Game() {
     });
 
     const unsubGameOver = onEvent("game_over", (p: any) => { setGameOver(p); });
+    const unsubPartyReset = onEvent("party_reset", () => { nav(`/lobby/${code}`); });
 
     return () => {
       unsubVotingStarted(); unsubVote(); unsubSpyGuessing(); unsubSpyResult();
-      unsubRoundCompleted(); unsubRoundStarted(); unsubGameOver();
+      unsubRoundCompleted(); unsubRoundStarted(); unsubGameOver(); unsubPartyReset();
       ws.close();
       if (timerRef.current) clearInterval(timerRef.current);
     };
@@ -143,6 +144,13 @@ export default function Game() {
     setError("");
     try { await nextRound(code); }
     catch (e: any) { setError(e?.error || "Failed to start next round"); }
+  }
+
+  async function handlePlayAgain() {
+    if (!code) return;
+    setError("");
+    try { await resetParty(code); }
+    catch (e: any) { setError(e?.error || "Failed to reset game"); }
   }
 
   async function handleSpyGuess(e: React.FormEvent) {
@@ -213,6 +221,12 @@ export default function Game() {
           </button>
         </div>
 
+        {myId === hostId
+          ? <button onClick={handlePlayAgain} style={{ width: "100%" }}>Play Again</button>
+          : <p className="waiting" style={{ textAlign: "center" }}>Waiting for host to start a new game...</p>
+        }
+        {error && <p className="error">{error}</p>}
+
         <div style={{ width: "100%", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r)", overflow: "hidden" }}>
           <table>
             <thead>
@@ -240,7 +254,7 @@ export default function Game() {
             </tbody>
           </table>
         </div>
-        <button onClick={() => nav("/")}>Back to Home</button>
+        <button className="btn-ghost" onClick={() => nav("/")} style={{ width: "100%" }}>Leave Party</button>
       </div>
     );
   }

@@ -111,6 +111,16 @@ export async function nextRound(code: string) {
   return res.json() as Promise<{ roundId: string }>;
 }
 
+export async function resetParty(code: string) {
+  const res = await fetch(`${BASE}/parties/${code}/reset`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json() as Promise<{ success: boolean }>;
+}
+
 export async function submitSpyGuess(roundId: string, guess: string) {
   const res = await fetch(`${BASE}/rounds/${roundId}/spy-guess`, {
     method: "POST",

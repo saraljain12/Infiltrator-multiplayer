@@ -16,19 +16,22 @@ export async function votingRoutes(app: FastifyInstance) {
     const token = req.headers.authorization?.replace("Bearer ", "");
     if (!token) return reply.status(401).send({ error: "Unauthorized" });
 
-    const player = await prisma.player.findUnique({ where: { sessionToken: token } });
+    const [player, party] = await Promise.all([
+      prisma.player.findUnique({ where: { sessionToken: token } }),
+      prisma.party.findUnique({ where: { code } }),
+    ]);
     if (!player) return reply.status(401).send({ error: "Unauthorized" });
-
-    const party = await prisma.party.findUnique({ where: { code } });
     if (!party) return reply.status(404).send({ error: "Party not found" });
 
-    const round = await prisma.round.findFirst({
-      where: { partyId: party.id, status: { not: "completed" } },
-      orderBy: { roundNumber: "desc" },
-    });
+    const [round, aliveCount] = await Promise.all([
+      prisma.round.findFirst({
+        where: { partyId: party.id, status: { not: "completed" } },
+        orderBy: { roundNumber: "desc" },
+      }),
+      prisma.player.count({ where: { partyId: party.id, isAlive: true } }),
+    ]);
     if (!round) return reply.status(404).send({ error: "No active round" });
 
-    const aliveCount = await prisma.player.count({ where: { partyId: party.id, isAlive: true } });
     const votesSubmitted = await prisma.vote.count({ where: { roundId: round.id } });
 
     const votingDeadline = round.votingStartedAt
@@ -225,8 +228,15 @@ export async function votingRoutes(app: FastifyInstance) {
 }
 
 async function resolveRound(roundId: string, partyCode: string, forced = false) {
+  // Atomically claim resolution rights — only one caller proceeds if concurrent
+  const claimed = await prisma.round.updateMany({
+    where: { id: roundId, status: "voting" },
+    data: { status: "resolving" },
+  });
+  if (claimed.count === 0) return; // another caller already claimed it
+
   const round = await prisma.round.findUnique({ where: { id: roundId }, include: { votes: true, party: true } });
-  if (!round || round.status !== "voting") return;
+  if (!round) return;
   const spyNotFirst = round.party.spyNotFirst;
 
   // No votes cast — skip elimination
