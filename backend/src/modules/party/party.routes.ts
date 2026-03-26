@@ -163,6 +163,7 @@ export async function partyRoutes(app: FastifyInstance) {
     if (!player) return reply.status(401).send({ error: "Unauthorized" });
     if (!party) return reply.status(404).send({ error: "Party not found" });
     if (party.hostPlayerId !== player.id) return reply.status(403).send({ error: "Only host can reset" });
+    if (party.status === "lobby") return reply.send({ success: true, alreadyReset: true });
     if (party.status !== "finished") return reply.status(400).send({ error: "Game not finished" });
 
     const pairCount = await prisma.wordPair.count();

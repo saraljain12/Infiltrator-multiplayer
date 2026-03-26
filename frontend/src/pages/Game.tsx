@@ -149,8 +149,14 @@ export default function Game() {
   async function handlePlayAgain() {
     if (!code) return;
     setError("");
-    try { await resetParty(code); }
-    catch (e: any) { setError(e?.error || "Failed to reset game"); }
+    try {
+      await resetParty(code);
+      nav(`/lobby/${code}`);
+    } catch (e: any) {
+      // If already reset (WS drop + retry), just go to lobby
+      if (e?.error === "Game not finished") { nav(`/lobby/${code}`); return; }
+      setError(e?.error || "Failed to reset game");
+    }
   }
 
   async function handleSpyGuess(e: React.FormEvent) {
