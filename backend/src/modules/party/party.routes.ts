@@ -171,6 +171,7 @@ export async function partyRoutes(app: FastifyInstance) {
     if (!pair) return reply.status(500).send({ error: "No word pairs available" });
 
     await prisma.$transaction(async (tx) => {
+      await tx.round.deleteMany({ where: { partyId: party.id } });
       await tx.party.update({
         where: { id: party.id },
         data: { status: "lobby", wordA: pair.wordA, wordB: pair.wordB, category: pair.category },
