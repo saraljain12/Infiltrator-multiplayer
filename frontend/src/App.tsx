@@ -14,6 +14,9 @@ export default function App() {
         <Route path="/game/:code" element={<Game />} />
         <Route path="/offline" element={<OfflineGame />} />
       </Routes>
+      <footer style={{ textAlign: "center", padding: "1.5rem 0 1rem", fontSize: ".75rem", color: "var(--muted)" }}>
+        made with ♥ for nidhi
+      </footer>
     </BrowserRouter>
   );
 }
