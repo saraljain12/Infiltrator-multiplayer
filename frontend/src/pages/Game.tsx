@@ -73,7 +73,7 @@ export default function Game() {
   useEffect(() => {
     if (!code) return;
     function syncState() {
-      Promise.all([getMe(), getParty(code), getCurrentRound(code)]).then(([meData, partyData, roundData]) => {
+      Promise.all([getMe(), getParty(code!), getCurrentRound(code!)]).then(([meData, partyData, roundData]) => {
         setMe(meData);
         setPlayers(partyData.players);
         setHostId(partyData.party.hostPlayerId);
@@ -85,7 +85,7 @@ export default function Game() {
     }
     syncState();
 
-    const ws = connectWS(code, token, syncState);
+    connectWS(code, token, syncState);
 
     const unsubVotingStarted = onEvent("voting_started", (p: any) => {
       setRound((r) => r ? { ...r, status: "voting", votingDeadline: p.votingDeadline } : r);

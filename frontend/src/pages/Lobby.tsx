@@ -37,7 +37,7 @@ export default function Lobby() {
   useEffect(() => {
     if (!code) return;
     function syncParty() {
-      getParty(code).then(({ party, players }) => {
+      getParty(code!).then(({ party, players }) => {
         if (party.status === "in_progress") { nav(`/game/${code}`); return; }
         setPlayers(players);
         setHostId(party.hostPlayerId);
@@ -45,7 +45,7 @@ export default function Lobby() {
     }
     syncParty();
 
-    const ws = connectWS(code, token, syncParty);
+    connectWS(code, token, syncParty);
     const unsub1 = onEvent("player_joined", (p: any) => {
       setPlayers((prev) => [...prev, { id: p.playerId, displayName: p.displayName, isAlive: true }]);
     });
