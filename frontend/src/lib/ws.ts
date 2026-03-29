@@ -11,7 +11,10 @@ const handlers = new Map<string, Set<Handler>>();
 
 function createSocket() {
   const wsBase = (import.meta.env.VITE_API_URL ?? "http://localhost:3001").replace(/^http/, "ws");
-  const ws = new WebSocket(`${wsBase}/parties/${activePartyCode}/ws?token=${activeToken}`);
+  // runtime override — matches getApiBase() in api.ts
+  const override = localStorage.getItem("_backend");
+  const wsBaseResolved = override ? override.replace(/^http/, "ws") : wsBase;
+  const ws = new WebSocket(`${wsBaseResolved}/parties/${activePartyCode}/ws?token=${activeToken}`);
 
   ws.addEventListener("message", (e) => {
     try {
