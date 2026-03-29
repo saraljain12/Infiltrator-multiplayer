@@ -5,10 +5,10 @@ export function generateToken(): string {
 }
 
 export function generatePartyCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ";
   let code = "";
-  const bytes = crypto.randomBytes(6);
-  for (let i = 0; i < 6; i++) {
+  const bytes = crypto.randomBytes(3);
+  for (let i = 0; i < 3; i++) {
     code += chars[bytes[i] % chars.length];
   }
   return code;

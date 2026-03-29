@@ -137,11 +137,11 @@ export async function partyRoutes(app: FastifyInstance) {
     const speakingOrder = generateSpeakingOrder(playersWithRoles, party.spyNotFirst);
 
     const round = await prisma.$transaction(async (tx) => {
-      await Promise.all(assignments.map(({ playerId, role }) =>
-        tx.player.update({ where: { id: playerId }, data: { role } })
-      ));
+      for (const { playerId, role } of assignments) {
+        await tx.player.update({ where: { id: playerId }, data: { role } });
+      }
       await tx.party.update({ where: { id: party.id }, data: { status: "in_progress" } });
-      return tx.round.create({ data: { partyId: party.id, roundNumber: 1, speakingOrder } });
+      return await tx.round.create({ data: { partyId: party.id, roundNumber: 1, speakingOrder } });
     });
 
     const alivePlayerIds = party.players.map((p) => p.id);
@@ -175,9 +175,9 @@ export async function partyRoutes(app: FastifyInstance) {
         where: { id: party.id },
         data: { status: "lobby", wordA: pair.wordA, wordB: pair.wordB, category: pair.category },
       });
-      await Promise.all(
-        party.players.map((p) => tx.player.update({ where: { id: p.id }, data: { role: null, isAlive: true } }))
-      );
+      for (const p of party.players) {
+        await tx.player.update({ where: { id: p.id }, data: { role: null, isAlive: true } });
+      }
     });
 
     broadcast(code, "party_reset", {});
