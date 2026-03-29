@@ -1,14 +1,6 @@
 import storage from "./storage";
 
-// To switch backend at runtime without redeploying, open browser console and run:
-//   localStorage.setItem('_backend', 'https://your-koyeb-url.koyeb.app')
-// To revert back:
-//   localStorage.removeItem('_backend')
-export function getApiBase(): string {
-  return localStorage.getItem("_backend") || import.meta.env.VITE_API_URL || "http://localhost:3001";
-}
-
-const BASE = getApiBase();
+const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
 function getToken() {
   return storage.getItem("sessionToken") ?? "";

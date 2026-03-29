@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(npm:*)",
-      "Bash(npx:*)"
+      "Bash(npx:*)",
+      "Bash(git add:*)",
+      "WebFetch(domain:www.prisma.io)",
+      "WebSearch",
+      "WebFetch(domain:github.com)"
     ]
   }
 }
