@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getParty, startGame } from "../lib/api";
 import storage from "../lib/storage";
-import { connectWS, onEvent } from "../lib/ws";
+import { connectWS, onEvent, disconnectWS } from "../lib/ws";
 
 interface Player { id: string; displayName: string; isAlive: boolean }
 
@@ -36,18 +36,22 @@ export default function Lobby() {
 
   useEffect(() => {
     if (!code) return;
-    getParty(code).then(({ party, players }) => {
-      setPlayers(players);
-      setHostId(party.hostPlayerId);
-    });
+    function syncParty() {
+      getParty(code).then(({ party, players }) => {
+        if (party.status === "in_progress") { nav(`/game/${code}`); return; }
+        setPlayers(players);
+        setHostId(party.hostPlayerId);
+      });
+    }
+    syncParty();
 
-    const ws = connectWS(code, token);
+    const ws = connectWS(code, token, syncParty);
     const unsub1 = onEvent("player_joined", (p: any) => {
       setPlayers((prev) => [...prev, { id: p.playerId, displayName: p.displayName, isAlive: true }]);
     });
     const unsub2 = onEvent("game_started", () => { nav(`/game/${code}`); });
 
-    return () => { unsub1(); unsub2(); ws.close(); };
+    return () => { unsub1(); unsub2(); disconnectWS(); };
   }, [code]);
 
   async function handleStart() {

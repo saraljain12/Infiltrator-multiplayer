@@ -235,8 +235,8 @@ export default function Home() {
           <input
             value={joinCode}
             onChange={(e) => setJoinCode(e.target.value)}
-            maxLength={6}
-            placeholder="XXXXXX"
+            maxLength={3}
+            placeholder="XXX"
             style={{ fontFamily: "'Cinzel', serif", letterSpacing: ".2em", fontSize: "1.2rem" }}
             required
           />

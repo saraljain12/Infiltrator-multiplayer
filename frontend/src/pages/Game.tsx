@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getMe, getParty, getCurrentRound, startVoting, submitVote, submitSpyGuess, nextRound, resetParty } from "../lib/api";
 import storage from "../lib/storage";
-import { connectWS, onEvent } from "../lib/ws";
+import { connectWS, onEvent, disconnectWS } from "../lib/ws";
 
 interface PlayerInfo { id: string; displayName: string; isAlive: boolean }
 interface Me { playerId: string; displayName: string; role: string | null; word: string | null; isAlive: boolean }
@@ -72,17 +72,20 @@ export default function Game() {
 
   useEffect(() => {
     if (!code) return;
-    Promise.all([getMe(), getParty(code), getCurrentRound(code)]).then(([meData, partyData, roundData]) => {
-      setMe(meData);
-      setPlayers(partyData.players);
-      setHostId(partyData.party.hostPlayerId);
-      setCategory(partyData.party.category);
-      setInfiltratorKnowsRole(partyData.party.infiltratorKnowsRole);
-      setRound({ ...roundData, speakingOrder: roundData.speakingOrder ?? [] });
-      if (roundData.status === "voting" && roundData.votingDeadline) startCountdown(roundData.votingDeadline);
-    });
+    function syncState() {
+      Promise.all([getMe(), getParty(code), getCurrentRound(code)]).then(([meData, partyData, roundData]) => {
+        setMe(meData);
+        setPlayers(partyData.players);
+        setHostId(partyData.party.hostPlayerId);
+        setCategory(partyData.party.category);
+        setInfiltratorKnowsRole(partyData.party.infiltratorKnowsRole);
+        setRound({ ...roundData, speakingOrder: roundData.speakingOrder ?? [] });
+        if (roundData.status === "voting" && roundData.votingDeadline) startCountdown(roundData.votingDeadline);
+      }).catch(() => {});
+    }
+    syncState();
 
-    const ws = connectWS(code, token);
+    const ws = connectWS(code, token, syncState);
 
     const unsubVotingStarted = onEvent("voting_started", (p: any) => {
       setRound((r) => r ? { ...r, status: "voting", votingDeadline: p.votingDeadline } : r);
@@ -118,7 +121,7 @@ export default function Game() {
     return () => {
       unsubVotingStarted(); unsubVote(); unsubSpyGuessing(); unsubSpyResult();
       unsubRoundCompleted(); unsubRoundStarted(); unsubGameOver(); unsubPartyReset();
-      ws.close();
+      disconnectWS();
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [code]);
