@@ -10,24 +10,15 @@ function BirthdayPopup() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    function checkIST() {
-      const now = new Date();
-      // Convert to IST (UTC+5:30)
-      const istMs = now.getTime() + (5.5 * 60 * 60 * 1000) - now.getTimezoneOffset() * 60000;
-      const istDate = new Date(istMs);
-      const date = istDate.getUTCDate();   // 7
-      const month = istDate.getUTCMonth(); // 3 = April
-      const h = istDate.getUTCHours();
-      const m = istDate.getUTCMinutes();
-      // Show only on April 7th IST, within first 5 minutes of midnight (00:00 - 00:05)
-      if (month === 3 && date === 7 && h === 0 && m < 5) {
-        const dismissed = sessionStorage.getItem("birthday_dismissed");
-        if (!dismissed) setShow(true);
-      }
+    const now = new Date();
+    // Convert to IST (UTC+5:30)
+    const istDate = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+    const date = istDate.getUTCDate();
+    const month = istDate.getUTCMonth(); // 3 = April
+    // Show once to anyone who opens the app on April 7th IST
+    if (month === 3 && date === 7 && !localStorage.getItem("birthday_anuja_dismissed")) {
+      setShow(true);
     }
-    checkIST();
-    const id = setInterval(checkIST, 30000);
-    return () => clearInterval(id);
   }, []);
 
   if (!show) return null;
@@ -49,7 +40,7 @@ function BirthdayPopup() {
         maxWidth: "90vw",
       }}>
         <button
-          onClick={() => { setShow(false); sessionStorage.setItem("birthday_dismissed", "1"); }}
+          onClick={() => { setShow(false); localStorage.setItem("birthday_anuja_dismissed", "1"); }}
           style={{
             position: "absolute", top: "1rem", right: "1rem",
             background: "none", border: "none", color: "#c084fc",
