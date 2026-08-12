@@ -10,7 +10,9 @@ let stopped = false;
 const handlers = new Map<string, Set<Handler>>();
 
 function createSocket() {
-  const wsBase = (import.meta.env.VITE_API_URL ?? "http://localhost:3001").replace(/^http/, "ws");
+  const wsBase = import.meta.env.VITE_API_URL
+    ? import.meta.env.VITE_API_URL.replace(/^http/, "ws")
+    : `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}`;
   const ws = new WebSocket(`${wsBase}/parties/${activePartyCode}/ws?token=${activeToken}`);
 
   ws.addEventListener("message", (e) => {

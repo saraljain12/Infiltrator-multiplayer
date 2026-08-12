@@ -1,6 +1,6 @@
 import storage from "./storage";
 
-const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
+const BASE = import.meta.env.VITE_API_URL ?? "";
 
 function getToken() {
   return storage.getItem("sessionToken") ?? "";
